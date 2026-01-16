@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Students - Hostel Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>Student Registration</h1>
+        <nav>
+            <a href="dashboard.html">Home</a>
+            <a href="students.html">Students</a>
+            <a href="rooms.html">Rooms</a>
+            <a href="about.html">About</a>
+        </nav>
+    </header>
+
+    <main>
+        <form>
+            <label>Student Name</label><br>
+            <input type="text"><br><br>
+
+            <label>Roll Number</label><br>
+            <input type="text"><br><br>
+
+            <label>Course</label><br>
+            <input type="text"><br><br>
+
+            <button type="submit">Add Student</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Roll</th>
+                    <th>Course</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+        </table>
+    </main>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
