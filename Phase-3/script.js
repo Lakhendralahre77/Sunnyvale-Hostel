@@ -4,8 +4,9 @@ console.log("JS connected ✅");
 document.addEventListener("DOMContentLoaded", function () {
 
 //step-2: Login form validation
-    const loginForm = document.querySelector("form");
+    const loginForm = document.getElementById("loginForm");
 
+    if(loginForm) {
     loginForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -19,12 +20,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         window.location.href = "dashboard.html";
     });
+    }
+   
 
 //step-3: student registration logic
-    const studentForm = document.querySelector("form");
+    const studentForm = document.getElementById("studentForm");
 
     const tableBody = document.getElementById("studentTableBody");
 
+    if(studentForm) {
     studentForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -50,22 +54,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         studentForm.reset();
     });
-});
-//hello
-/*
+    }
 //step-4: Room status logic
-    <td class="status">Available</td>
+    
 
     const statusCells = document.querySelectorAll(".status");
+    console.log("Status cells found:", statusCells.length);
 
+    if (statusCells.length > 0) {
     statusCells.forEach(function (cell) {
         cell.addEventListener("click", function () {
-            if (cell.textContent === "Available") {
+            console.log("Clicked:", cell.textContent);
+
+            if (cell.textContent.trim() === "Available") {
                 cell.textContent = "Occupied";
             } else {
                 cell.textContent = "Available";
             }
-        })
+        });
     });
-});*/
-//"hello dhawal"
+    }
+}); 
+
