@@ -1,3 +1,5 @@
+console.log("JS connected ✅");
+
 //step-1: wait for HTML to load
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -48,7 +50,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         studentForm.reset();
     });
-
+});
+//hello
+/*
 //step-4: Room status logic
     <td class="status">Available</td>
 
@@ -63,4 +67,4 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
     });
-});
+});*/
