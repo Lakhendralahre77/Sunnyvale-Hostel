@@ -26,10 +26,11 @@ app.post("/api/login", (req, res) => {
 });
 
 // ---------------- STUDENT APIs ----------------
+//add student
 app.post("/api/students", (req, res) => {
     const { name, roll, course } = req.body;
 
-    console.log("POST DATA:", req.body); // 👈 DEBUG
+    //console.log("POST DATA:", req.body); // 👈 DEBUG
 
     if (!name || !roll || !course) {
         return res.status(400).json({ message: "All fields required" });
@@ -51,7 +52,7 @@ app.post("/api/students", (req, res) => {
 });
 
 
-
+//get all students
 app.get("/api/students", (req, res) => {
     const sql = "SELECT * FROM students";
 

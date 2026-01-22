@@ -1,6 +1,6 @@
-console.log("blmmmmm");
 const studentTableBody = document.getElementById("studentTableBody");
 const studentForm = document.getElementById("studentForm");
+
 const nameInput = document.getElementById("name");
 const rollInput = document.getElementById("roll");
 const courseInput = document.getElementById("course");
