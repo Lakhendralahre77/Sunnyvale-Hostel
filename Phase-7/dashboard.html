@@ -17,15 +17,32 @@
         </nav>
     </header>
 
-    <main>
-        <section>
-            <h2>Overview</h2>
-            <p>Total Students: --</p>
-            <p>Total Rooms: --</p>
-            <p>Available Rooms: --</p>
-        </section>
+    <main>     
+        <div class="dashboard">
+            <div class="card">
+                <h3>Total Students</h3>
+                <p id="totalStudents">0</p>
+            </div>
+
+             <div class="card">
+                <h3>Total Rooms</h3>
+                <p id="totalRooms">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Occupied Rooms</h3>
+                <p id="occupiedRooms">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Available Rooms</h3>
+                <p id="availableRooms">0</p>
+            </div>
+        </div>
+
     </main>
 
-    <script src="script.js"></script>
+    <script src="auth.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>

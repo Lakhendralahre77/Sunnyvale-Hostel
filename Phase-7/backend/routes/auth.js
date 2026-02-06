@@ -6,3 +6,8 @@ router.post("/login", (req, res) => {
     }
     res.status(401).json({success: false, message: "Invalid credentials"});
 });
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "index.html";
+}

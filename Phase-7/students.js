@@ -1,10 +1,15 @@
 console.log("students.js connected ✅");
 
+const role = localStorage.getItem("role");
 const studentTableBody = document.getElementById("studentTableBody");
 const studentForm = document.getElementById("studentForm");
 const nameInput = document.getElementById("name");
 const rollInput = document.getElementById("roll");
 const courseInput = document.getElementById("course");
+
+if (!localStorage.getItem("role")) {
+    window.location.href = "index.html";
+}
 
 /* ==============================
    STEP 1: LOAD STUDENTS
@@ -24,16 +29,12 @@ function loadStudents() {
                     <td>${student.course}</td>
                     <td>${student.room_no || "Not Allotted"}</td>
                     <td>
-                        <button class="allot-btn" data-id="${student.id}">
-                            Allot Room
-                        </button>
-                        <button class="edit-btn" data-id="${student.id}">
-                            Edit
-                        </button>
-                        <button class="delete-btn" data-id="${student.id}">
-                            Delete
-                        </button>
-                    </td>
+                        ${role === "admin" ? `
+                            <button class="allot-btn" data-id="${student.id}"> Allot Room </button>
+                            <button class="edit-btn" data-id="${student.id}"> Edit </button>
+                            <button class="delete-btn" data-id="${student.id}"> Delete </button>
+                        `: "View Only"}    
+                        </td>
                 `;
 
 
@@ -136,30 +137,62 @@ function attachEditHandlers() {
 }
 
 
-function attachAllotHandlers() {
-    const allotButtons = document.querySelectorAll(".allot-btn");
-
-    allotButtons.forEach(btn => {
+/*function attachAllotHandlers() {
+    document.querySelectorAll(".allot-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const id = btn.dataset.id;
-
             const roomNo = prompt("Enter room number:");
 
             if (!roomNo) return;
 
             fetch(`http://localhost:5000/api/students/${id}/allot`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ room_no: roomNo })
             })
             .then(res => res.json())
             .then(data => {
-                alert("Room allotted: " + data.room);
+                alert(data.message);   // 🔥 error/success both
                 loadStudents();
             })
-            .catch(err => console.error("Allot error:", err));
+            .catch(err => console.error(err));
+        });
+    });
+}*/
+function attachAllotHandlers() {
+    document.querySelectorAll(".allot-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const studentId = btn.dataset.id;
+
+            // 1️⃣ fetch available rooms
+            const res = await fetch("http://localhost:5000/api/rooms/available");
+            const rooms = await res.json();
+
+            if (rooms.length === 0) {
+                alert("No rooms available");
+                return;
+            }
+
+            // 2️⃣ create dropdown options
+            let options = rooms.map(r => r.room_no).join(", ");
+
+            const selectedRoom = prompt(
+                `Available rooms: ${options}\nEnter room number:`
+            );
+
+            if (!selectedRoom) return;
+
+            // 3️⃣ allot selected room
+            fetch(`http://localhost:5000/api/students/${studentId}/allot`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ room_no: selectedRoom })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                loadStudents();
+            });
         });
     });
 }

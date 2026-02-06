@@ -15,14 +15,27 @@ app.get("/", (req, res) => {
 });
 
 // ---------------- LOGIN API ----------------
+
 app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (email === "admin@hostel.com" && password === "admin123") {
-        return res.json({ success: true });
-    }
+    const sql = `
+        SELECT id, role FROM users 
+        WHERE username = ? AND password = ?
+    `;
 
-    res.status(401).json({ success: false, message: "Invalid credentials" });
+    db.query(sql, [username, password], (err, result) => {
+        if (err) return res.status(500).json({ message: "DB error" });
+
+        if (result.length === 0) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        res.json({
+            message: "Login successful",
+            role: result[0].role
+        });
+    });
 });
 
 // ---------------- STUDENT APIs ----------------
@@ -50,8 +63,7 @@ app.post("/api/students", (req, res) => {
     });
 });
 
-
-
+//students
 app.get("/api/students", (req, res) => {
     const sql = "SELECT * FROM students";
 
@@ -65,18 +77,120 @@ app.get("/api/students", (req, res) => {
     });
 });
 
-// DELETE student
-app.delete("/api/students/:id", (req, res) => {
-    const studentId = req.params.id;
-    console.log("dlt called");
-    const sql = "DELETE FROM students WHERE id = ?";
-    db.query(sql, [studentId], (err, result) => {
+//rooms available
+app.get("/api/rooms/available", (req, res) => {
+    const sql = `
+        SELECT room_no 
+        FROM rooms 
+        WHERE occupied < capacity
+    `;
+
+    db.query(sql, (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ message: "DB error" });
         }
 
-        res.json({ message: "Student deleted" });
+        res.json(results);
+    });
+});
+
+//dashboard
+app.get("/api/dashboard/stats", (req, res) => {
+
+    const stats = {};
+
+    // 1️⃣ Total students
+    const studentCount = "SELECT COUNT(*) AS totalStudents FROM students";
+
+    db.query(studentCount, (err, result) => {
+        if (err) return res.status(500).json(err);
+        stats.totalStudents = result[0].totalStudents;
+
+        // 2️⃣ Total rooms
+        const roomCount = "SELECT COUNT(*) AS totalRooms FROM rooms";
+
+        db.query(roomCount, (err, result) => {
+            if (err) return res.status(500).json(err);
+            stats.totalRooms = result[0].totalRooms;
+
+            // 3️⃣ Occupied rooms
+            const occupiedRooms = `
+                SELECT COUNT(*) AS occupiedRooms 
+                FROM rooms 
+                WHERE occupied >= capacity
+            `;
+
+            db.query(occupiedRooms, (err, result) => {
+                if (err) return res.status(500).json(err);
+                stats.occupiedRooms = result[0].occupiedRooms;
+
+                // 4️⃣ Available rooms
+                const availableRooms = `
+                    SELECT COUNT(*) AS availableRooms 
+                    FROM rooms 
+                    WHERE occupied < capacity
+                `;
+
+                db.query(availableRooms, (err, result) => {
+                    if (err) return res.status(500).json(err);
+                    stats.availableRooms = result[0].availableRooms;
+
+                    res.json(stats);
+                });
+            });
+        });
+    });
+});
+
+// DELETE student
+app.delete("/api/students/:id", (req, res) => {
+    const studentId = req.params.id;
+
+    // 1️⃣ Find student's room
+    const findStudent = `
+        SELECT room_no FROM students WHERE id = ?
+    `;
+
+    db.query(findStudent, [studentId], (err, result) => {
+        if (err) return res.status(500).json({ message: "DB error" });
+        if (result.length === 0) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        const roomNo = result[0].room_no;
+
+        // 2️⃣ Delete student
+        const deleteStudent = `
+            DELETE FROM students WHERE id = ?
+        `;
+
+        db.query(deleteStudent, [studentId], (err) => {
+            if (err) return res.status(500).json({ message: "Delete failed" });
+
+            // 3️⃣ If student had a room → update room
+            if (roomNo) {
+                const updateRoom = `
+                    UPDATE rooms
+                    SET occupied = occupied - 1,
+                        status = IF(occupied - 1 < capacity, 'Available', status)
+                    WHERE room_no = ?
+                `;
+
+                db.query(updateRoom, [roomNo], (err) => {
+                    if (err) return res.status(500).json({ message: "Room update failed" });
+
+                    return res.json({
+                        message: "Student deleted & room de-allocated"
+                    });
+                });
+            } else {
+                // Student had no room
+                return res.json({
+                    message: "Student deleted"
+                });
+            }
+        });
     });
 });
 
@@ -105,26 +219,70 @@ app.put("/api/students/:id/allot", (req, res) => {
     const studentId = req.params.id;
     const { room_no } = req.body;
 
-    console.log("ALLOT REQUEST:", studentId, room_no);
-
     if (!room_no) {
         return res.status(400).json({ message: "Room number required" });
     }
 
-    const sql = "UPDATE students SET room_no = ? WHERE id = ?";
+    // 1️⃣ Check if student already has a room
+    const checkStudent = "SELECT room_no FROM students WHERE id = ?";
+    db.query(checkStudent, [studentId], (err, studentResult) => {
+        if (err) return res.status(500).json({ message: "DB error" });
 
-    db.query(sql, [room_no, studentId], (err, result) => {
-        if (err) {
-            console.error("DB ERROR:", err);
-            return res.status(500).json({ message: "Database error" });
+        if (studentResult[0].room_no) {
+            return res.status(400).json({
+                message: "Student already allotted to a room"
+            });
         }
 
-        res.json({
-            message: "Room allotted successfully",
-            room: room_no
+        // 2️⃣ Check room capacity
+        const checkRoom = `
+            SELECT capacity, occupied 
+            FROM rooms 
+            WHERE room_no = ?
+        `;
+
+        db.query(checkRoom, [room_no], (err, roomResult) => {
+            if (err) return res.status(500).json({ message: "DB error" });
+
+            if (roomResult.length === 0) {
+                return res.status(404).json({ message: "Room not found" });
+            }
+
+            const { capacity, occupied } = roomResult[0];
+
+            if (occupied >= capacity) {
+                return res.status(400).json({
+                    message: "Room is full"
+                });
+            }
+
+            // 3️⃣ Allot room to student
+            const updateStudent = `
+                UPDATE students SET room_no = ? WHERE id = ?
+            `;
+
+            db.query(updateStudent, [room_no, studentId], (err) => {
+                if (err) return res.status(500).json({ message: "Student update failed" });
+
+                // 4️⃣ Increase occupied count
+                const updateRoom = `
+                    UPDATE rooms 
+                    SET occupied = occupied + 1,
+                        status = IF(occupied + 1 >= capacity, 'Occupied', 'Available')
+                    WHERE room_no = ?
+                `;
+
+                db.query(updateRoom, [room_no], (err) => {
+                    if (err) return res.status(500).json({ message: "Room update failed" });
+
+                    res.json({ message: "Room allotted successfully" });
+                });
+            });
         });
     });
 });
+
+
 
 // ---------------- SERVER START ----------------
 const PORT = 5000;

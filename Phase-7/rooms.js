@@ -2,6 +2,10 @@ console.log("rooms.js connected ✅");
 
 const roomsTableBody = document.getElementById("roomsTableBody");
 
+if (!localStorage.getItem("role")) {
+    window.location.href = "index.html";
+}
+
 function loadRooms() {
     fetch("http://localhost:5000/api/rooms")
         .then(res => res.json())
