@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notices - Hostel Management</title>
+    <link rel="stylesheet" href="notices.css">
+</head>
+<body>
+
+<header>
+    <nav>
+            <div>
+                <h1>Sunnyvale Hostel</h1>
+            </div>
+            <div>
+                <a href="dashboard.html">Home</a>
+                <a href="students.html">Students</a>
+                <a href="rooms.html">Rooms</a>
+                <a href="fees.html">Fees</a>
+                <a href="notices.html">Notices</a>
+                <a href="about.html">About</a>
+                <a href="index.html">Logout</a>
+            </div>
+        </nav>
+</header>
+
+<main>
+
+<h2>Hostel Notice Board</h2>
+
+<form id="noticeForm">
+    <input type="text" placeholder="Notice Title" required>
+    <textarea placeholder="Notice Description" required></textarea>
+    <button>Add Notice</button>
+</form>
+
+<div class="notice-board" id="noticeBoard">
+    <!-- Notices will appear here -->
+</div>
+
+<h3 class="section-title">Recent Notices</h3>
+
+<div class="notice-board" id="noticeBoard"></div>
+
+</main>
+
+<script src="notices.js"></script>
+</body>
+</html>

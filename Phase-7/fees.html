@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fees - Hostel Management</title>
+    <link rel="stylesheet" href="fees.css">
+</head>
+<body>
+
+<header>
+    <nav>
+            <div>
+                <h1>Sunnyvale Hostel</h1>
+            </div>
+            <div>
+                <a href="dashboard.html">Home</a>
+                <a href="students.html">Students</a>
+                <a href="rooms.html">Rooms</a>
+                <a href="fees.html">Fees</a>
+                <a href="notices.html">Notices</a>
+                <a href="about.html">About</a>
+                <a href="index.html">Logout</a>
+            </div>
+    </nav>
+</header>
+
+<main>
+
+<h2>Student Fees Management</h2>
+
+<form id="feesForm">
+    <input type="text" placeholder="Student Name" required>
+    <input type="number" placeholder="Total Fees" required>
+    <input type="number" placeholder="Paid Amount" required>
+    <button>Add Record</button>
+</form>
+
+<div class="table-wrapper">
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Total Fees</th>
+            <th>Paid</th>
+            <th>Remaining</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Chintu</td>
+            <td>30000</td>
+            <td>20000</td>
+            <td>10000</td>
+            <td><span class="pending">Pending</span></td>
+        </tr>
+        <tr>
+            <td>Dhawal</td>
+            <td>30000</td>
+            <td>30000</td>
+            <td>0</td>
+            <td><span class="paid">Paid</span></td>
+        </tr>
+    </tbody>
+</table>
+</div>
+
+</main>
+
+<script src="fees.js"></script>
+
+</body>
+</html>
+

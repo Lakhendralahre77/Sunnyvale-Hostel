@@ -2,44 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Hostel Management</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sunnyvale Hostel</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Optional: modern font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Dashboard</h1>
-        <nav>
-            <a href="dashboard.html">Home</a>
-            <a href="students.html">Students</a>
-            <a href="rooms.html">Rooms</a>
-            <a href="about.html">About</a>
-            <a href="index.html">Logout</a>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>Sunnyvale Hostel</h1>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard.html" class="active">Home</a>
+                <a href="students.html">Students</a>
+                <a href="rooms.html">Rooms</a>
+                <a href="fees.html">Fees</a>
+                <a href="notices.html">Notices</a>
+                <a href="about.html">About</a>
+                <a href="index.html" class="logout">Logout</a>
+            </div>
         </nav>
     </header>
 
-    <main>     
-        <div class="dashboard">
-            <div class="card">
+    <main class="main-content">
+        <div class="page-header">
+            <h2>Admin Dashboard</h2>
+            <p>Overview of Sunnyvale Hostel Management System</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" data-type="students">
                 <h3>Total Students</h3>
-                <p id="totalStudents">0</p>
+                <p id="totalStudents">5</p>
             </div>
-
-             <div class="card">
+            <div class="stat-card" data-type="rooms">
                 <h3>Total Rooms</h3>
-                <p id="totalRooms">0</p>
+                <p id="totalRooms">4</p>
             </div>
-
-            <div class="card">
+            <div class="stat-card" data-type="occupied">
                 <h3>Occupied Rooms</h3>
-                <p id="occupiedRooms">0</p>
+                <p id="occupiedRooms">4</p>
             </div>
-
-            <div class="card">
+            <div class="stat-card" data-type="available">
                 <h3>Available Rooms</h3>
                 <p id="availableRooms">0</p>
             </div>
         </div>
 
+        <section class="notices-section">
+            <h3 class="section-title">Latest Notices</h3>
+            <div class="notice-board" id="dashboardNotices">
+                <!-- JS will fill this – example placeholder -->
+                <!-- <div class="notice-item">Notice 1: Maintenance on 20 Feb...</div> -->
+            </div>
+        </section>
     </main>
 
     <script src="auth.js"></script>

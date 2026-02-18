@@ -15,13 +15,38 @@ function loadRooms() {
             data.forEach(room => {
                 const row = document.createElement("tr");
 
+                 // Demo occupancy logic (full if occupied, empty if available)
+    
+                let percent = room.status === "Occupied" ? 100:0;
+
+                let roomType;
+
+                if (room.capacity == 1) {
+                    roomType = "Single";
+                } 
+                else if (room.capacity == 2) {
+                    roomType = "Double";
+                } 
+                else if (room.capacity == 3) {
+                    roomType = "Triple";
+                } 
+                else {
+                    roomType = "Shared";
+                }
+
                 row.innerHTML = `
                     <td>${room.room_no}</td>
+                    <td>${room.floor || "Floor 1"}</td>
+                    <td>${roomType}</td>
                     <td>${room.capacity}</td>
-                    <td class="status" data-room="${room.room_no}">
-                        ${room.status}
+                    <td>
+                        <span class="occupy-badge">
+                            ${room.occupied || 1} / ${room.capacity}
+                        </span>
                     </td>
-                `;
+                    <td>₹${room.rent || 5000}</td>
+                    <td>${room.facilities || "WiFi, Bed, Bathroom, Study Table"}</td>
+                    `;
 
                 roomsTableBody.appendChild(row);
             });

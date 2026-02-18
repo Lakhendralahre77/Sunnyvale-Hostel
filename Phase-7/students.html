@@ -4,53 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <title>Students - Hostel Management</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="students.css">
 </head>
 
 <body>
     <header>
-        <h1>Student Registration</h1>
+        <h1>Sunnyvale Hostel</h1>
         <nav>
             <a href="dashboard.html">Home</a>
             <a href="students.html">Students</a>
             <a href="rooms.html">Rooms</a>
+            <a href="fees.html">Fees</a>
+            <a href="notices.html">Notices</a>
             <a href="about.html">About</a>
             <a href="index.html">Logout</a>
         </nav>
     </header>
 
     <main>
-        <h2>Add Student</h2>
+        <h2>Student Registration</h2>
 
     <form id="studentForm">
         <input type="text" id="name" placeholder="Student Name" required />
-        <input type="text" id="roll" placeholder="Roll Number" required />
+        <input type="text" id="registration" placeholder="Registration No" required />
         <input type="text" id="course" placeholder="Course" required />
         <button type="submit">Add Student</button>
     </form>
         <hr />
-
-
+        <div class="table-wrapper">
         <table border="1">
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Roll No</th>
+                    <th>Registration No.</th>
                     <th>Course</th>
                     <th>Room</th>
                     <th>Action</th>
-
                 </tr>
             </thead>
             <tbody id="studentTableBody">
                 <!-- students will come from DB-->
             </tbody>
         </table>
+        </div>
     </main>
 
-    <script src="auth.js"></script>
-    <script src="students.js"></script>
-    
+    <script src="D:\Project\Sunnyvale-Hostel\Phase-7\backend\routes\auth.js"></script>
+    <script src="students.js"></script>   
 </body>
-
 </html>

@@ -1,198 +1,241 @@
 console.log("students.js connected ✅");
 
+// ────────────────────────────────────────────────
+// Global variables & auth check
+// ────────────────────────────────────────────────
 const role = localStorage.getItem("role");
 const studentTableBody = document.getElementById("studentTableBody");
 const studentForm = document.getElementById("studentForm");
-const nameInput = document.getElementById("name");
-const rollInput = document.getElementById("roll");
-const courseInput = document.getElementById("course");
+const nameInput         = document.getElementById("name");
+const registrationInput = document.getElementById("registration");
+const courseInput       = document.getElementById("course");
 
-if (!localStorage.getItem("role")) {
+if (!role) {
     window.location.href = "index.html";
 }
 
-/* ==============================
-   STEP 1: LOAD STUDENTS
-================================ */
-function loadStudents() {
-    fetch("http://localhost:5000/api/students")
-        .then(res => res.json())
-        .then(data => {
-            studentTableBody.innerHTML = "";
-
-            data.forEach(student => {
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${student.name}</td>
-                    <td>${student.roll}</td>
-                    <td>${student.course}</td>
-                    <td>${student.room_no || "Not Allotted"}</td>
-                    <td>
-                        ${role === "admin" ? `
-                            <button class="allot-btn" data-id="${student.id}"> Allot Room </button>
-                            <button class="edit-btn" data-id="${student.id}"> Edit </button>
-                            <button class="delete-btn" data-id="${student.id}"> Delete </button>
-                        `: "View Only"}    
-                        </td>
-                `;
-
-
-                studentTableBody.appendChild(row);
-            });
-
-            // 🔥 IMPORTANT: attach handlers AFTER rows are created
-            attachDeleteHandlers();
-            attachEditHandlers();
-            attachAllotHandlers();
-        })
-        .catch(err => console.error("Load error:", err));
+// ────────────────────────────────────────────────
+// Helper functions (missing in your code)
+// ────────────────────────────────────────────────
+function showLoading(btn) {
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = "Processing...";
 }
 
-/* ==============================
-   STEP 2: LOAD ON PAGE OPEN
-================================ */
+function resetButton(btn, originalText) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.textContent = originalText;
+}
+
+function showError(msg) {
+    console.error(msg);
+    alert(msg);
+}
+
+// ────────────────────────────────────────────────
+// LOAD STUDENTS
+// ────────────────────────────────────────────────
+async function loadStudents() {
+    try {
+        const res = await fetch("http://localhost:5000/api/students");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        studentTableBody.innerHTML = "";
+
+        data.forEach(student => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${student.name || "—"}</td>
+                <td>${student.roll || student.registration || "—"}</td> <!-- support both names -->
+                <td>${student.course || "—"}</td>
+                <td>${student.room_no || "Not Allotted"}</td>
+                <td>
+                    ${role === "admin" ? `
+                        <button class="action-btn btn-allot" data-id="${student.id}">Allot Room</button>
+                        <button class="action-btn btn-edit"   data-id="${student.id}">Edit</button>
+                        <button class="action-btn btn-delete" data-id="${student.id}">Delete</button>
+                    ` : "View Only"}
+                </td>
+            `;
+            studentTableBody.appendChild(row);
+        });
+
+        attachDeleteHandlers();
+        attachEditHandlers();
+        attachAllotHandlers();
+
+    } catch (err) {
+        console.error("Load students failed:", err);
+        studentTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Failed to load students</td></tr>`;
+    }
+}
+
+// ────────────────────────────────────────────────
+// PAGE LOAD
+// ────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     if (studentTableBody) {
         loadStudents();
     }
 });
 
-/* ==============================
-   STEP 3: ADD STUDENT
-================================ */
+// ────────────────────────────────────────────────
+// ADD STUDENT
+// ────────────────────────────────────────────────
 if (studentForm) {
-    studentForm.addEventListener("submit", function (e) {
+    studentForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const addBtn = studentForm.querySelector(".btn-add");
+        showLoading(addBtn);
+
         const studentData = {
-            name: nameInput.value,
-            roll: rollInput.value,
-            course: courseInput.value
+            name:        nameInput?.value?.trim()       || "",
+            roll:        registrationInput?.value?.trim() || "",   // ← backend expects "roll"
+            course:      courseInput?.value?.trim()     || ""
         };
 
-        fetch("http://localhost:5000/api/students", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(studentData)
-        })
-        .then(res => res.json())
-        .then(() => {
-            alert("Student added successfully");
+        if (!studentData.name || !studentData.roll || !studentData.course) {
+            alert("Please fill all fields");
+            resetButton(addBtn, "Add Student");
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:5000/api/students", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(studentData)
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Server error (${res.status})`);
+            }
+
+            alert("Student added successfully!");
             studentForm.reset();
-            loadStudents();
-        })
-        .catch(err => console.error("Post error:", err));
+            await loadStudents();
+
+        } catch (err) {
+            showError(`Failed to add student: ${err.message}`);
+        } finally {
+            resetButton(addBtn, "Add Student");
+        }
     });
 }
 
-/* ==============================
-   STEP 4: DELETE STUDENT
-================================ */
+// ────────────────────────────────────────────────
+// DELETE STUDENT
+// ────────────────────────────────────────────────
 function attachDeleteHandlers() {
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+    document.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", async () => {
             const id = btn.dataset.id;
+            if (!confirm("Delete this student?")) return;
 
-            if (!confirm("Are you sure you want to delete this student?")) return;
+            showLoading(btn);
 
-            fetch(`http://localhost:5000/api/students/${id}`, {
-                method: "DELETE"
-            })
-            .then(res => res.json())
-            .then(() => loadStudents())
-            .catch(err => console.error("Delete error:", err));
+            try {
+                const res = await fetch(`http://localhost:5000/api/students/${id}`, { method: "DELETE" });
+                if (!res.ok) throw new Error("Delete failed");
+                await loadStudents();
+            } catch (err) {
+                showError("Delete error: " + err.message);
+            } finally {
+                resetButton(btn, "Delete");
+            }
         });
     });
 }
 
-/* ==============================
-   STEP 5: EDIT STUDENT
-================================ */
+// ────────────────────────────────────────────────
+// EDIT STUDENT
+// ────────────────────────────────────────────────
 function attachEditHandlers() {
-    document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+    document.querySelectorAll(".btn-edit").forEach(btn => {
+        btn.addEventListener("click", async () => {
             const id = btn.dataset.id;
 
-            const newName = prompt("Enter name", btn.dataset.name);
-            const newRoll = prompt("Enter roll", btn.dataset.roll);
-            const newCourse = prompt("Enter course", btn.dataset.course);
+            // You can improve this later by fetching current data
+            const newName   = prompt("Edit Name:", "Current name");
+            const newRoll   = prompt("Edit Registration No:", "Current roll");
+            const newCourse = prompt("Edit Course:", "Current course");
 
             if (!newName || !newRoll || !newCourse) return;
 
-            fetch(`http://localhost:5000/api/students/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: newName,
-                    roll: newRoll,
-                    course: newCourse
-                })
-            })
-            .then(res => res.json())
-            .then(() => loadStudents())
-            .catch(err => console.error("Edit error:", err));
+            showLoading(btn);
+
+            try {
+                const res = await fetch(`http://localhost:5000/api/students/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name:   newName.trim(),
+                        roll:   newRoll.trim(),     // ← consistent with add
+                        course: newCourse.trim()
+                    })
+                });
+
+                if (!res.ok) throw new Error("Update failed");
+                await loadStudents();
+            } catch (err) {
+                showError("Edit error: " + err.message);
+            } finally {
+                resetButton(btn, "Edit");
+            }
         });
     });
 }
 
-
-/*function attachAllotHandlers() {
-    document.querySelectorAll(".allot-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            const roomNo = prompt("Enter room number:");
-
-            if (!roomNo) return;
-
-            fetch(`http://localhost:5000/api/students/${id}/allot`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ room_no: roomNo })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);   // 🔥 error/success both
-                loadStudents();
-            })
-            .catch(err => console.error(err));
-        });
-    });
-}*/
+// ────────────────────────────────────────────────
+// ALLOT ROOM
+// ────────────────────────────────────────────────
 function attachAllotHandlers() {
-    document.querySelectorAll(".allot-btn").forEach(btn => {
+    document.querySelectorAll(".btn-allot").forEach(btn => {
         btn.addEventListener("click", async () => {
             const studentId = btn.dataset.id;
+            showLoading(btn);
 
-            // 1️⃣ fetch available rooms
-            const res = await fetch("http://localhost:5000/api/rooms/available");
-            const rooms = await res.json();
+            try {
+                const res = await fetch("http://localhost:5000/api/rooms/available");
+                if (!res.ok) throw new Error("Cannot load rooms");
 
-            if (rooms.length === 0) {
-                alert("No rooms available");
-                return;
+                const rooms = await res.json();
+
+                if (rooms.length === 0) {
+                    alert("No rooms available");
+                    return;
+                }
+
+                const roomList = rooms.map(r => r.room_no).join(", ");
+                const selected = prompt(`Available rooms: ${roomList}\n\nEnter room number:`);
+
+                if (!selected) return;
+
+                const allotRes = await fetch(`http://localhost:5000/api/students/${studentId}/allot`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ room_no: selected.trim() })
+                });
+
+                if (!allotRes.ok) {
+                    const errData = await allotRes.json().catch(() => ({}));
+                    throw new Error(errData.message || "Allot failed");
+                }
+
+                const data = await allotRes.json();
+                alert(data.message || "Room allotted!");
+                await loadStudents();
+
+            } catch (err) {
+                showError("Allot error: " + err.message);
+            } finally {
+                resetButton(btn, "Allot Room");
             }
-
-            // 2️⃣ create dropdown options
-            let options = rooms.map(r => r.room_no).join(", ");
-
-            const selectedRoom = prompt(
-                `Available rooms: ${options}\nEnter room number:`
-            );
-
-            if (!selectedRoom) return;
-
-            // 3️⃣ allot selected room
-            fetch(`http://localhost:5000/api/students/${studentId}/allot`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ room_no: selectedRoom })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                loadStudents();
-            });
         });
     });
 }

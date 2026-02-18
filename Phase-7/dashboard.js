@@ -16,4 +16,30 @@ function loadDashboardStats() {
         .catch(err => console.error(err));
 }
 
-document.addEventListener("DOMContentLoaded", loadDashboardStats);
+/* ===== NOTICE PREVIEW ON DASHBOARD ===== */
+
+const dashboardNotices = document.getElementById("dashboardNotices");
+
+function loadDashboardNotices() {
+    let notices = JSON.parse(localStorage.getItem("notices")) || [];
+
+    dashboardNotices.innerHTML = "";
+
+    notices.slice(-3).reverse().forEach(n => {
+        const card = document.createElement("div");
+        card.className = "notice";
+
+        card.innerHTML = `
+          <h3>${n.title}</h3>
+          <p>${n.desc}</p>
+          <small>${n.date}</small>
+        `;
+
+        dashboardNotices.appendChild(card);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadDashboardStats();
+    loadDashboardNotices();
+});
